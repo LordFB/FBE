@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{margin:0;padding:0;}
+        body{
+            width:100vw;
+            height:100vh;
+            overflow: hidden;
+        }
+        canvas{
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="renderCanvas"></canvas>
+
+    <script type="module">
+        import * as imports from './engine/Engine.js';
+        import './lib/babylon.max.js'
+        Object.entries(imports).forEach(([name, exported]) => window[name] = exported);
+
+        // Example usage:
+        const engine = Engine.getInstance();
+        const babylonRenderer = BabylonRenderer.getInstance('renderCanvas');
+
+        const player = engine.addGameObject('Player');
+        player.transform.position.y = 0.5;
+        const cubeMesh = new BABYLON.MeshBuilder.CreateCapsule("Cube"); // Create a Babylon.js mesh
+        player.addComponent(new Render3D(cubeMesh, player));
+        player.addComponent(new Character(Input,player));
+
+        const terrainSystem = engine.addGameObject('Terrain');
+        terrainSystem.addComponent( new Terrain(player) );
+
+        // Start the engine
+        engine.start();
+
+        // Render loop using Babylon.js
+        engine.render = () => {
+            player.transform.position.y = terrainSystem.getComponent('Terrain').getHeightAt(player.transform.position.x,player.transform.position.z) + 0.5;
+            babylonRenderer.camera.position.x = player.transform.position.x;
+            babylonRenderer.camera.position.z = player.transform.position.z - 15;
+            babylonRenderer.camera.position.y = player.transform.position.y + 5;
+            //babylonRenderer.camera.setTarget(new BABYLON.Vector3(player.transform.position.x,player.transform.position.y,player.transform.position.z));
+            babylonRenderer.render();
+        };
+
+    </script>
+</body>
+
+</html>
